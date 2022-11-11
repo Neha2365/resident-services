@@ -245,8 +245,10 @@ public class CredentialStatusUpdateBatchJob {
 		}
 	}
 	
-	private void trackAnddownloadPrintingOrIntransitStatus(ResidentTransactionEntity txn,TemplateType templateType,RequestType requestType) throws ResidentServiceCheckedException {
+	private void trackAnddownloadPrintingOrIntransitStatus(ResidentTransactionEntity txn,TemplateType templateType,RequestType requestType) throws ResidentServiceCheckedException, ApisResourceAccessException {
 		if (txn.getStatusCode().contentEquals(PRINTING) || txn.getStatusCode().contentEquals(IN_TRANSIT) ) {
+		    String trackingId=getTrackingId(txn.getRequestTrnId(),txn.getIndividualId());
+		    txn.setTrackingId(trackingId);
 			createResidentDwldUrlAndNotify(txn, templateType,requestType);
 		}
 	}
@@ -300,6 +302,20 @@ public class CredentialStatusUpdateBatchJob {
 			throw new ResidentServiceCheckedException(ResidentErrorCode.UNKNOWN_EXCEPTION);
 		}
 		return responseWrapper.getResponse();
+	}
+	
+	private String getTrackingId(String transactionId, String individualId)
+			throws ResidentServiceCheckedException, ApisResourceAccessException {
+		Object object = residentServiceRestClient.getApi(ApiName.GET_ORDER_STATUS_URL, List.of(),
+				List.of("transactionId", "individualId"), List.of(transactionId, individualId), ResponseWrapper.class);
+		ResponseWrapper<Map<String, String>> responseWrapper = JsonUtil.convertValue(object,
+				new TypeReference<ResponseWrapper<Map<String, String>>>() {
+				});
+		if (Objects.nonNull(responseWrapper.getErrors()) && !responseWrapper.getErrors().isEmpty()) {
+			logger.error("ORDER_STATUS_URL returned error " + responseWrapper.getErrors());
+			throw new ResidentServiceCheckedException(ResidentErrorCode.UNKNOWN_EXCEPTION);
+		}
+		return responseWrapper.getResponse().get("trackingId");
 	}
 
 	private boolean isRecordAvailableInIdRepo(String individualId) throws ResidentServiceCheckedException {
