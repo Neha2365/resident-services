@@ -3,6 +3,7 @@ package io.mosip.resident.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,7 +152,11 @@ public class OrderCardServiceImpl implements OrderCardService {
 		try {
 			ResponseWrapper<?> responseWrapper = (ResponseWrapper<?>) restClientWithSelfTOkenRestTemplate.getApi(
 					ApiName.GET_ORDER_STATUS_URL, pathsegments, queryParamName, queryParamValue, ResponseWrapper.class);
-
+	//check error condition ...... responseWrapper.getErrors();
+			if (responseWrapper.getErrors() != null && !responseWrapper.getErrors().isEmpty()) {
+				throw new ResidentServiceCheckedException(responseWrapper.getErrors().get(0).getErrorCode(),
+						responseWrapper.getErrors().get(0).getMessage());
+			}
 			residentTransactionEntity.setStatusCode(EventStatusInProgress.PAYMENT_CONFIRMED.name());
 
 		} catch (ApisResourceAccessException e) {
@@ -178,6 +183,16 @@ public class OrderCardServiceImpl implements OrderCardService {
 		notificationRequestDtoV2.setEventId(eventId);
 		notificationRequestDtoV2.setAdditionalAttributes(additionalAttributes);
 		return notificationService.sendNotification(notificationRequestDtoV2);
+	}
+
+	@Override
+	public ResponseWrapper<?> physicalCardOrder(String redirectUrl, String paymentTransactionId,String eventId,
+			String residentFullAddress) throws ResidentServiceCheckedException {
+		if (isPaymentEnabled) {
+			Optional<ResidentTransactionEntity> residentTransactionEntity = residentTransactionRepository.findById(eventId);
+			checkOrderStatus(paymentTransactionId, eventId, residentTransactionEntity.get());
+		}
+		return null;
 	}
 
 }

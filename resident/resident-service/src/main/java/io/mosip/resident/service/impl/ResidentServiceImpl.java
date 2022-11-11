@@ -142,6 +142,7 @@ import io.mosip.resident.dto.ServiceHistoryResponseDto;
 import io.mosip.resident.dto.SortType;
 import io.mosip.resident.dto.UnreadNotificationDto;
 import io.mosip.resident.dto.UnreadServiceNotificationDto;
+import io.mosip.resident.dto.UserInfoDto;
 import io.mosip.resident.entity.ResidentTransactionEntity;
 import io.mosip.resident.entity.ResidentUserEntity;
 import io.mosip.resident.handler.service.ResidentUpdateService;
@@ -2115,4 +2116,18 @@ public class ResidentServiceImpl implements ResidentService {
 		logger.debug("ResidentServiceImpl::residentServiceHistoryPDF()::exit");
 		return pdfValue.toByteArray();
 	}
+
+	@Override
+	public ResponseWrapper<UserInfoDto> getUserinfo() {
+		return null;
+	}
+
+
+	@Override
+	public ResponseWrapper<?> getredirectUrl(String partnerId, String redirectUri) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
 }

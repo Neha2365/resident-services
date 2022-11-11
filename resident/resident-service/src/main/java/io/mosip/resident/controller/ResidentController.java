@@ -31,6 +31,7 @@ import io.mosip.resident.dto.ResponseDTO;
 import io.mosip.resident.dto.ServiceHistoryResponseDto;
 import io.mosip.resident.dto.UnreadNotificationDto;
 import io.mosip.resident.dto.UnreadServiceNotificationDto;
+import io.mosip.resident.dto.UserInfoDto;
 import io.mosip.resident.exception.ApisResourceAccessException;
 import io.mosip.resident.exception.OtpValidationFailedException;
 import io.mosip.resident.exception.ResidentServiceCheckedException;
@@ -567,6 +568,45 @@ public class ResidentController {
 		return ResponseEntity.ok().contentType(MediaType.parseMediaType("application/pdf"))
 				.header("Content-Disposition", "attachment; filename=\"" + "viewServiceHistory" + ".pdf\"")
 				.body(resource);
+	}
+	
+	@ResponseFilter
+	@PreAuthorize("@scopeValidator.hasAllScopes(" + "@authorizedScopes.getGetUnreadServiceList()" + ")")
+	@GetMapping("/user/info")
+	@Operation(summary = "get", description = "Get unread-service-list", tags = { "resident-controller" })
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "201", description = "Created", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
+
+	public ResponseWrapper<UserInfoDto> userinfo()
+			throws ResidentServiceCheckedException, ApisResourceAccessException {
+		logger.debug("ResidentController::getuserinfo()::entry");
+		String Id = identityServiceImpl.getResidentIdaToken();
+		ResponseWrapper<UserInfoDto> userInfoDto = residentService.getUserinfo();
+		logger.debug("ResidentController::getuserinfo()::exit");
+		return userInfoDto;
+	}
+	
+	@ResponseFilter
+	@PreAuthorize("@scopeValidator.hasAllScopes(" + "@authorizedScopes.getGetUnreadServiceList()" + ")")
+	@GetMapping("/physical-card/order")
+	@Operation(summary = "get", description = "Get redirect-url", tags = { "resident-controller" })
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "OK"),
+			@ApiResponse(responseCode = "201", description = "Created", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(schema = @Schema(hidden = true))) })
+	
+	public ResponseWrapper<?> physicalCardOrder(@RequestParam(name = "partnerId") String partnerId ,
+			@RequestParam(name = "redirectUri ") String redirectUri )
+			throws ResidentServiceCheckedException, ApisResourceAccessException {
+		logger.debug("ResidentController::getphysicalCardOrder()::entry");
+		String Id = identityServiceImpl.getResidentIdaToken();
+		ResponseWrapper<?> redirectURL = residentService.getredirectUrl(partnerId,redirectUri);
+		logger.debug("ResidentController::getphysicalCardOrder()::exit");
+		return redirectURL;
 	}
 	
 }
