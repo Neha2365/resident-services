@@ -87,7 +87,9 @@ public class ResidentEntityInterceptor extends EmptyInterceptor {
 	public boolean onFlushDirty(Object entity, Serializable id, Object[] state, Object[] previousState,
 			String[] propertyNames, Type[] types) {
 		List<String> propertyNamesList = Arrays.asList(propertyNames);
-		encryptDataOnSave(id, state, propertyNamesList, types, (ResidentTransactionEntity) entity);
+		if (entity instanceof ResidentTransactionEntity) {
+			encryptDataOnSave(id, state, propertyNamesList, types, (ResidentTransactionEntity) entity);
+		}
 		return super.onFlushDirty(entity, id, state, previousState, propertyNames, types);
 	}
 
